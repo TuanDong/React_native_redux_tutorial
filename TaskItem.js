@@ -1,24 +1,21 @@
 import React, { Component } from 'react'
 import { View, Text, TouchableOpacity, FlatList,Dimensions } from 'react-native'
 import ViewMesgItem from './ViewMesgItem'
-
+import {connect} from 'react-redux'
 
 const width = (Dimensions.get("window").width /20) 
-export default class TaskItem extends Component {
+class TaskItem extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            // status: false,
-            noidung: '',
-        }
     }
-    ChangeND =(noidung) => {this.props.ChangeNDApp(noidung); }
+
     renderItem = ({ item, index }) => {
+        const {onFinishedItem, onDeleteItem, onDetailItem} = this.props;
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start",  flex: 1, backgroundColor: "#f4f9f9", marginTop: 10, marginLeft: 20, marginRight: 20 }}>
                 <View style={{ marginLeft: width }}>
                     <TouchableOpacity
-                        onPress={() => this.props.onFinishedItem(index)}
+                        onPress={() => onFinishedItem(index)}
                     >
                         <Text>{(item.isFinished) ? `✔️` : `⏰`}</Text>
                     </TouchableOpacity>
@@ -28,19 +25,14 @@ export default class TaskItem extends Component {
                 </View>
                 <View style={{ marginRight: width}}>
                     <TouchableOpacity
-                        onPress={() => this.props.onDeleteItem(index)}
+                        onPress={() => onDeleteItem(index)}
                     >
                         <Text>❎</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginRight: width }}>
                     <TouchableOpacity
-                        onPress= {()=>{
-                            this.setState({
-                                // status:!this.state.status,
-                                noidung: item.mesg
-                            });
-                        }}
+                        onPress= {()=>onDetailItem(index)}
                     >
                         <Text>👇</Text>
                     </TouchableOpacity>
@@ -49,18 +41,59 @@ export default class TaskItem extends Component {
         )
     }
     render() {
+        console.log(this.props);
+        const {dataFlatList} = this.props.dataFlatList;
         return (
             <View>
                 <FlatList
-                    data={this.props.dataFlatList}
+                    data={dataFlatList}
                     extraData={this.props}
                     keyExtractor={(item, index) => index+''}
                     renderItem={this.renderItem}
                 />
-                <ViewMesgItem /*status = {this.state.status}*/ ChangeND ={this.ChangeND} noidung = {this.state.noidung}/>
+                <ViewMesgItem />
                 
             </View>
 
         );
     }
 }
+
+
+//Action
+const finishTask = (index) => {
+    return {
+        type: 'FINISH',
+        atIndex: index
+    }
+
+}
+const deleteTask = (index) => {
+    return {
+        type: 'DELETE',
+        atIndex: index
+    }
+
+}
+const detailTask = (index) => {
+    return {
+        type: 'DETAIL',
+        atIndex: index
+    }
+
+}
+
+export default connect(
+    state =>{
+        return {
+            dataFlatList: state
+        }
+},dispatch =>{
+    return {
+        onFinishedItem:(index)=>{dispatch(finishTask(index))},
+        onDeleteItem:(index)=>{dispatch(deleteTask(index))},
+        onDetailItem:(index)=>{dispatch(detailTask(index))}
+    }
+}
+)(TaskItem)
+

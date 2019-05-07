@@ -1,8 +1,10 @@
 import React, { Component } from 'react'
 import { View, Text, TouchableOpacity,TextInput ,Dimensions} from 'react-native'
-
+import { connect } from "react-redux";
 const width = (Dimensions.get("window").width * 3) / 4
-export default class ViewAdd extends Component {
+
+
+class ViewAdd extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -29,3 +31,19 @@ export default class ViewAdd extends Component {
         )
     }
 }
+//Action
+const addTask = (name) => {
+    return {
+        type:'ADD_NEW_TASK',
+        workName:name
+    }
+}
+
+export default connect(null,
+    dispatch=>{
+        return {
+            addNewTask: (name) => {
+                dispatch(addTask(name));
+            }
+        }
+})(ViewAdd);

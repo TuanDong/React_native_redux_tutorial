@@ -7,47 +7,70 @@
  */
 
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Dimensions, FlatList,Alert } from 'react-native';
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Dimensions, FlatList, Alert } from 'react-native';
 import TaskItem from './TaskItem'
 import ViewAdd from './ViewAdd'
 import { createStore } from 'redux'
+import { Provider } from 'react-redux'
 
 
 //State
-let appState = {number:1}
+let appState = {
+    dataFlatList: [
+        {
+            title: "Go to the office",
+            mesg: "Go to the office"
+            , isFinished: true
+        },
+        {
+            title: "Playing football",
+            mesg: "Playing football",
+            isFinished: false
+        },
+        {
+            title: "React Native Tutorial",
+            mesg: "React Native Tutorial",
+            isFinished: true
+        },
+    ],
+    noidung:'',
+    indexItem: 0
+}
 
-//Action
-const add = {
-    type: 'ADD',
-    value: 1
-}
-const sub = {
-    type: 'SUB',
-    value: 1
-}
+
 
 //Reducer
-const numberReducer = (state, action) => {
-    switch(action.type) {
-        case 'ADD':
-            state.number += action.value;
-            break;
-        case 'SUB':
-            state.number -= action.value;
-            break;
+const taskListReducer = (state = appState, action) => {
+    let newTaskList = state.dataFlatList;
+    switch (action.type) {
+        case 'FINISH':
+            newTaskList[action.atIndex].isFinished = true;
+            return { ...state, dataFlatList: newTaskList }
+        case 'DELETE':
+            newTaskList = newTaskList.filter((item,i) =>{i !== action.atIndex });
+            return { ...state, dataFlatList: newTaskList };
+        case 'DETAIL':
+            let detailNoidung = newTaskList[action.atIndex].mesg;
+            return {...state,noidung:detailNoidung,indexItem:action.atIndex}
+        case 'UPDATE_NOIDUNG' :
+            newTaskList = newTaskList.filter((item,i) => {
+                if(action.messenger !="" && i == state.indexItem)
+                    item.mesg = action.messenger;
+                return item;
+            });
+            Alert.alert("Messenger !","success... !");
+            return { ...state, dataFlatList: newTaskList };
+        case 'ADD_NEW_TASK':
+            let newTask = { title: action.workName, mesg: action.workName, isFinished: false }
+            Alert.alert("Messenger !","success... !");
+            return {...state,dataFlatList:[...state.dataFlatList,newTask]};
     }
     return state
 }
 
 //Store
-const store = createStore(numberReducer,appState);
+const store = createStore(taskListReducer, appState);
 
-
-//Test
-store.subscribe(() =>{
-    console.log('state update',store.getState());
-});
-store.dispatch(add);
 
 
 export default class App extends Component {
@@ -73,45 +96,42 @@ export default class App extends Component {
             ],
         }
     }
-    addNewTask = (inputText) => {
-        var newTask = { title: inputText,mesg:'', isFinished: false }
-        var newTaskList = [...this.state.dataFlatList, newTask]
-        this.setState({ dataFlatList: newTaskList });
-    }
-    onFinishedItem = (index) => {
-        let newTaskList = this.state.dataFlatList;
-        newTaskList[index].isFinished = !newTaskList[index].isFinished;
-        this.setState({ dataFlatList: newTaskList });
-    }
-    onDeleteItem = (index) => {
-        let newTaskList = this.state.dataFlatList.filter((item, i) => i != index);
-        this.setState({ dataFlatList: newTaskList });
-    }
-    ChangeNoidung = (nd)=>{
-        let updatemesgList = [...this.state.dataFlatList];
-        updatemesgList.map((item)=>item.mesg=nd);
-        this.setState({
-            dataFlatList: updatemesgList,
-        });
-        Alert.alert("Messenger","success...!");
-    }
+    // addNewTask = (inputText) => {
+    //     var newTask = { title: inputText, mesg: '', isFinished: false }
+    //     var newTaskList = [...this.state.dataFlatList, newTask]
+    //     this.setState({ dataFlatList: newTaskList });
+    // }
+    // onFinishedItem = (index) => {
+    //     let newTaskList = this.state.dataFlatList;
+    //     newTaskList[index].isFinished = !newTaskList[index].isFinished;
+    //     this.setState({ dataFlatList: newTaskList });
+    // }
+    // onDeleteItem = (index) => {
+    //     let newTaskList = this.state.dataFlatList.filter((item, i) => i != index);
+    //     this.setState({ dataFlatList: newTaskList });
+    // }
+    // ChangeNoidung = (nd) => {
+    //     let updatemesgList = [...this.state.dataFlatList];
+    //     updatemesgList.map((item) => item.mesg = nd);
+    //     this.setState({
+    //         dataFlatList: updatemesgList,
+    //     });
+    //     Alert.alert("Messenger", "success...!");
+    // }
 
     render() {
 
         return (
-            <View style={styles.container}>
-                <View style={{ backgroundColor: "#efefef", marginBottom: 20, }}>
-                    <Text style={styles.welcome}>To Do App</Text>
+            <Provider store={store} >
+                <View style={styles.container}>
+                    <View style={{ backgroundColor: "#efefef", marginBottom: 20, }}>
+                        <Text style={styles.welcome}>To Do App</Text>
+                    </View>
+                    <ViewAdd />
+                    <TaskItem />
+
                 </View>
-                <ViewAdd addNewTask={this.addNewTask} />
-                <TaskItem
-                    dataFlatList={this.state.dataFlatList}
-                    onFinishedItem={this.onFinishedItem}
-                    onDeleteItem={this.onDeleteItem}
-                    ChangeNDApp = {this.ChangeNoidung}
-                />
-                
-            </View>
+            </Provider>
         );
     }
 }
